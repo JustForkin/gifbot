@@ -9,7 +9,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 )
 
 var session *rethink.Session
