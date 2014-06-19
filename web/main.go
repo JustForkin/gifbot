@@ -50,12 +50,19 @@ func CreateFeed(rows *rethink.ResultRows, subject string) *feeds.Feed {
 
 	for rows.Next() {
 		var m helpers.Message
+
 		err := rows.Scan(&m)
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		title := m.Sender + " posted a new gif in " + m.Channel
+		if m.Nws {
+			title = m.Sender + " posted a new NSFW gif in " + m.Channel
+		}
+
 		item := &feeds.Item{
-			Title:       m.Sender + " posted a new gif in " + m.Channel,
+			Title:       title,
 			Link:        &feeds.Link{Href: m.Url},
 			Description: m.Url,
 			Created:     m.Posted,
