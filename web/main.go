@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/bmizerany/pat"
 	rethink "github.com/dancannon/gorethink"
@@ -13,10 +14,57 @@ import (
 
 var session *rethink.Session
 
+type User struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+func GifCount(w http.ResponseWriter, req *http.Request) {
+	users := []*User{}
+
+	table := rethink.Db("gifs").Table("entries")
+	userQuery := table.Map(rethink.Row.Field("Sender")).Distinct()
+
+	userRows, _ := userQuery.Run(session)
+	for userRows.Next() {
+		var user string
+
+		err := userRows.Scan(&user)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		countRow, err := table.Filter(rethink.Row.Field("Sender").Eq(user)).Count().RunRow(session)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if !countRow.IsNil() {
+			var gifCount int
+			err := countRow.Scan(&gifCount)
+
+			if err == nil {
+				user := User{
+					Name:  user,
+					Count: gifCount,
+				}
+
+				users = append(users, &user)
+			}
+		}
+	}
+
+	jsonResponse, _ := json.Marshal(users)
+
+	w.Header().Set("Content-Type", "application/json")
+	io.WriteString(w, string(jsonResponse))
+
+}
+
 func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 	channel := req.URL.Query().Get(":channel")
 
-	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy("-Date").Limit(20)
+	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy(rethink.Desc("Posted")).Limit(20)
 	rows, _ := query.Run(session)
 	feed := CreateFeed(rows, channel)
 
@@ -29,7 +77,7 @@ func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 func UserRSS(w http.ResponseWriter, req *http.Request) {
 	user := req.URL.Query().Get(":user")
 
-	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(user)).OrderBy("-Date").Limit(20)
+	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(user)).OrderBy(rethink.Desc("Posted")).Limit(20)
 	rows, _ := query.Run(session)
 	feed := CreateFeed(rows, user)
 
@@ -64,7 +112,7 @@ func CreateFeed(rows *rethink.ResultRows, subject string) *feeds.Feed {
 		item := &feeds.Item{
 			Title:       title,
 			Link:        &feeds.Link{Href: m.Url},
-			Description: m.Url,
+			Description: m.Content,
 			Created:     m.Posted,
 		}
 
@@ -83,6 +131,7 @@ func main() {
 
 	m.Get("/feed/channel/:channel.atom", http.HandlerFunc(ChannelRSS))
 	m.Get("/feed/user/:user.atom", http.HandlerFunc(UserRSS))
+	m.Get("/api/top", http.HandlerFunc(GifCount))
 
 	http.Handle("/", m)
 

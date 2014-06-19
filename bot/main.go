@@ -49,7 +49,9 @@ func main() {
 			}
 		}
 
-		message_chan <- message
+		if !strings.Contains(strings.ToLower(e.Nick), "bot") {
+			message_chan <- message
+		}
 	})
 
 	conn.Loop()
