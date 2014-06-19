@@ -42,6 +42,14 @@ func main() {
 		message.Content = e.Message()
 		message.Channel = strings.Split(e.Raw, " ")[2]
 
+		if strings.Contains(strings.ToLower(e.Message()), "nws") {
+			message.Nws = true
+		}
+
+		if strings.Contains(strings.ToLower(e.Message()), "nms") {
+			message.Nws = true
+		}
+
 		message_chan <- message
 	})
 

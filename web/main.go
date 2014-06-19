@@ -18,7 +18,6 @@ func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 
 	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy("-Date").Limit(20)
 	rows, _ := query.Run(session)
-
 	feed := CreateFeed(rows, channel)
 
 	atom, _ := feed.ToAtom()
