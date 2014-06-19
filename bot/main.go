@@ -20,6 +20,7 @@ func main() {
 	url_chan := make(chan helpers.Message)
 
 	chans := []string{"#secretyospos", "#cobol"}
+	nsfw := []string{"nsfw", "nms", "nws", "nsfl"}
 	conn := irc.IRC("ilovegifs", "ilovegifs")
 
 	err := conn.Connect("irc.synirc.net:6667")
@@ -42,12 +43,10 @@ func main() {
 		message.Content = e.Message()
 		message.Channel = strings.Split(e.Raw, " ")[2]
 
-		if strings.Contains(strings.ToLower(e.Message()), "nws") {
-			message.Nws = true
-		}
-
-		if strings.Contains(strings.ToLower(e.Message()), "nms") {
-			message.Nws = true
+		for _, w := range nsfw {
+			if strings.Contains(strings.ToLower(e.Message()), w) {
+				message.Nws = true
+			}
 		}
 
 		message_chan <- message
