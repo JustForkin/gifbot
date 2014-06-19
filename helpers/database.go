@@ -12,6 +12,7 @@ type Message struct {
 	Channel string
 	Url     string
 	Posted  time.Time
+	Nws     bool
 }
 
 func InitDB() *rethink.Session {

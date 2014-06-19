@@ -19,7 +19,7 @@ func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy("-Date").Limit(20)
 	rows, _ := query.Run(session)
 
-	feed := CreateFeed(rows, req)
+	feed := CreateFeed(rows, channel)
 
 	atom, _ := feed.ToAtom()
 
@@ -27,12 +27,24 @@ func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, atom)
 }
 
-func CreateFeed(rows *rethink.ResultRows, req *http.Request) *feeds.Feed {
-	channel := req.URL.Query().Get(":channel")
+func UserRSS(w http.ResponseWriter, req *http.Request) {
+	user := req.URL.Query().Get(":user")
+
+	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(user)).OrderBy("-Date").Limit(20)
+	rows, _ := query.Run(session)
+	feed := CreateFeed(rows, user)
+
+	atom, _ := feed.ToAtom()
+
+	w.Header().Set("Content-Type", "application/atom+xml")
+	io.WriteString(w, atom)
+}
+
+func CreateFeed(rows *rethink.ResultRows, subject string) *feeds.Feed {
 	items := []*feeds.Item{}
 
 	feed := &feeds.Feed{
-		Title:       "Recent Gifs for " + channel,
+		Title:       "Recent " + subject + " Gifs",
 		Link:        &feeds.Link{Href: "http://gifs.boner.io/"},
 		Description: "COOL GIFS COOL GIFS COOL GIFS",
 	}
@@ -64,6 +76,7 @@ func main() {
 	m := pat.New()
 
 	m.Get("/feed/channel/:channel.atom", http.HandlerFunc(ChannelRSS))
+	m.Get("/feed/user/:user.atom", http.HandlerFunc(UserRSS))
 
 	http.Handle("/", m)
 
