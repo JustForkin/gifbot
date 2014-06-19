@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bmizerany/pat"
 	rethink "github.com/dancannon/gorethink"
+	"github.com/ell/gifbot/helpers"
 	"github.com/gorilla/feeds"
 	"io"
 	"log"
@@ -13,42 +14,41 @@ import (
 
 var session *rethink.Session
 
-type Message struct {
-	Sender  string
-	Content string
-	Channel string
-	Url     string
-	Posted  time.Time
-}
-
 func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 	channel := req.URL.Query().Get(":channel")
+
+	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy("-Date").Limit(20)
+	rows, _ := query.Run(session)
+
+	feed := CreateFeed(rows, req)
+
+	atom, _ := feed.ToAtom()
+
+	w.Header().Set("Content-Type", "application/atom+xml")
+	io.WriteString(w, atom)
+}
+
+func CreateFeed(rows *rethink.ResultRows, req *http.Request) *feeds.Feed {
+	channel := req.URL.Query().Get(":channel")
+	items := []*feeds.Item{}
 
 	feed := &feeds.Feed{
 		Title:       "Recent Gifs for " + channel,
 		Link:        &feeds.Link{Href: "http://gifs.boner.io/"},
 		Description: "COOL GIFS COOL GIFS COOL GIFS",
-		Author:      &feeds.Author{"elgruntox", "mumphster@gmail.com"},
 		Created:     time.Now(),
 	}
 
-	items := []*feeds.Item{}
-
-	query := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Channel").Eq("#" + channel)).OrderBy("Date").Limit(20)
-	rows, _ := query.Run(session)
-
 	for rows.Next() {
-		var m Message
+		var m helpers.Message
 		err := rows.Scan(&m)
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
 		item := &feeds.Item{
 			Title:       m.Sender + " posted a new gif in " + m.Channel,
 			Link:        &feeds.Link{Href: m.Url},
 			Description: m.Url,
-			Author:      &feeds.Author{m.Sender, "bill.gates@microsoft.com"},
 			Created:     time.Now(),
 		}
 
@@ -57,18 +57,15 @@ func ChannelRSS(w http.ResponseWriter, req *http.Request) {
 
 	feed.Items = items
 
-	atom, _ := feed.ToAtom()
-
-	w.Header().Set("Content-Type", "application/atom+xml")
-	io.WriteString(w, atom)
+	return feed
 }
 
 func main() {
-	session = InitDB()
+	session = helpers.InitDB()
 
 	m := pat.New()
 
-	m.Get("/feed/:channel.atom", http.HandlerFunc(ChannelRSS))
+	m.Get("/feed/channe/:channel.atom", http.HandlerFunc(ChannelRSS))
 
 	http.Handle("/", m)
 
@@ -76,29 +73,4 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-}
-
-func InitDB() *rethink.Session {
-	session, err := rethink.Connect(rethink.ConnectOpts{
-		Address:     "localhost:28015",
-		Database:    "gifs",
-		MaxIdle:     10,
-		IdleTimeout: time.Second * 10,
-	})
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = rethink.DbCreate("gifs").Exec(session)
-	if err != nil {
-		log.Println(err)
-	}
-
-	_, err = rethink.Db("gifs").TableCreate("entries").RunWrite(session)
-	if err != nil {
-		log.Println(err)
-	}
-
-	return session
 }
