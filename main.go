@@ -25,7 +25,7 @@ func main() {
 	message_chan := make(chan Message)
 	url_chan := make(chan Message)
 
-	chans := []string{"#secretyospos"}
+	chans := []string{"#secretyospos", "#cobol"}
 	conn := irc.IRC("ilovegifs", "ilovegifs")
 
 	err := conn.Connect("irc.synirc.net:6667")
