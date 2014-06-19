@@ -65,7 +65,7 @@ func main() {
 
 	m := pat.New()
 
-	m.Get("/feed/channe/:channel.atom", http.HandlerFunc(ChannelRSS))
+	m.Get("/feed/channel/:channel.atom", http.HandlerFunc(ChannelRSS))
 
 	http.Handle("/", m)
 
