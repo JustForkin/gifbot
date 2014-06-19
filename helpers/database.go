@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	rethink "github.com/dancannon/gorethink"
 	"log"
 	"time"
@@ -13,6 +14,32 @@ type Message struct {
 	Url     string
 	Posted  time.Time
 	Nws     bool
+}
+
+type User struct {
+	Group     string `json:"name"`
+	Reduction int    `json:"count"`
+}
+
+func GifCount(session *rethink.Session) []*User {
+	users := []*User{}
+
+	table := rethink.Db("gifs").Table("entries")
+	userQuery := table.Group("Sender").Count()
+
+	userRows, _ := userQuery.Run(session)
+	for userRows.Next() {
+		var user User
+
+		err := userRows.Scan(&user)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		users = append(users, &user)
+	}
+
+	return users
 }
 
 func InitDB() *rethink.Session {

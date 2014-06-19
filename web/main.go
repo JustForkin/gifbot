@@ -20,28 +20,12 @@ type User struct {
 }
 
 func GifCount(w http.ResponseWriter, req *http.Request) {
-	users := []*User{}
-
-	table := rethink.Db("gifs").Table("entries")
-	userQuery := table.Group("Sender").Count()
-
-	userRows, _ := userQuery.Run(session)
-	for userRows.Next() {
-		var user User
-
-		err := userRows.Scan(&user)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		users = append(users, &user)
-	}
+	users := helpers.GifCount(session)
 
 	jsonResponse, _ := json.Marshal(users)
 
 	w.Header().Set("Content-Type", "application/json")
 	io.WriteString(w, string(jsonResponse))
-
 }
 
 func ChannelRSS(w http.ResponseWriter, req *http.Request) {
