@@ -131,7 +131,7 @@ func main() {
 
 	m.Get("/feed/channel/:channel.atom", http.HandlerFunc(ChannelRSS))
 	m.Get("/feed/user/:user.atom", http.HandlerFunc(UserRSS))
-	m.Get("/api/top", http.HandlerFunc(GifCount))
+	m.Get("/api/count", http.HandlerFunc(GifCount))
 
 	http.Handle("/", m)
 
