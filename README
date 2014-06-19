@@ -1,0 +1,7 @@
+Runs a bot that sits in an irc channel and logs gif links and then generates rss feeds
+
+To run:
+
+> make all
+> ./gifbot
+> ./gifweb

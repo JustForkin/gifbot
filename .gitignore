@@ -1,2 +1,10 @@
-web/web
 gifbot
+gifweb
+.rope_project/
+*.swp
+*#*
+#*
+*#
+.DS_STORE/
+.DS_STORE
+*.db

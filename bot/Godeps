@@ -1,0 +1,20 @@
+{
+	"ImportPath": "github.com/ell/gifbot/bot",
+	"GoVersion": "go1.2",
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/goprotobuf/proto",
+			"Comment": "go.r60-143",
+			"Rev": "cbd7916e5dceea418a5c75273aa0f8e20aef6c9e"
+		},
+		{
+			"ImportPath": "github.com/dancannon/gorethink",
+			"Comment": "issue_89",
+			"Rev": "b106bedec4e904d9bdf2f02c62f301b24593423e"
+		},
+		{
+			"ImportPath": "github.com/thoj/go-ircevent",
+			"Rev": "da2e16496d9711477ad7e0f788f1d2b59187c67f"
+		}
+	]
+}
