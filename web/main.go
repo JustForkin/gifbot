@@ -36,7 +36,6 @@ func CreateFeed(rows *rethink.ResultRows, req *http.Request) *feeds.Feed {
 		Title:       "Recent Gifs for " + channel,
 		Link:        &feeds.Link{Href: "http://gifs.boner.io/"},
 		Description: "COOL GIFS COOL GIFS COOL GIFS",
-		Created:     time.Now(),
 	}
 
 	for rows.Next() {
@@ -49,7 +48,7 @@ func CreateFeed(rows *rethink.ResultRows, req *http.Request) *feeds.Feed {
 			Title:       m.Sender + " posted a new gif in " + m.Channel,
 			Link:        &feeds.Link{Href: m.Url},
 			Description: m.Url,
-			Created:     time.Now(),
+			Created:     m.Posted,
 		}
 
 		items = append(items, item)
