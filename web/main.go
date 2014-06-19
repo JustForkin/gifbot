@@ -15,43 +15,26 @@ import (
 var session *rethink.Session
 
 type User struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
+	Group     string `json:"name"`
+	Reduction int    `json:"count"`
 }
 
 func GifCount(w http.ResponseWriter, req *http.Request) {
 	users := []*User{}
 
 	table := rethink.Db("gifs").Table("entries")
-	userQuery := table.Map(rethink.Row.Field("Sender")).Distinct()
+	userQuery := table.Group("Sender").Count()
 
 	userRows, _ := userQuery.Run(session)
 	for userRows.Next() {
-		var user string
+		var user User
 
 		err := userRows.Scan(&user)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		countRow, err := table.Filter(rethink.Row.Field("Sender").Eq(user)).Count().RunRow(session)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		if !countRow.IsNil() {
-			var gifCount int
-			err := countRow.Scan(&gifCount)
-
-			if err == nil {
-				user := User{
-					Name:  user,
-					Count: gifCount,
-				}
-
-				users = append(users, &user)
-			}
-		}
+		users = append(users, &user)
 	}
 
 	jsonResponse, _ := json.Marshal(users)
