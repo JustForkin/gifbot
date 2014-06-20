@@ -52,6 +52,8 @@ func main() {
 			switch cmd {
 			case "top":
 				TopFive(conn, args, channel)
+			case "score":
+				Score(conn, args, channel, e.User)
 			default:
 				return
 			}
@@ -90,6 +92,30 @@ func IsValidChannel(channel string, channels []string) bool {
 	}
 
 	return false
+}
+
+func Score(conn *irc.Connection, args []string, channel string, user string) {
+	var u string
+
+	if len(args) >= 1 {
+		u = args[0]
+	} else {
+		u = user
+	}
+
+	row, _ := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(u)).Count().RunRow(session)
+
+	if !row.IsNil() {
+		var gcount int
+		err := row.Scan(&gcount)
+
+		if err != nil {
+			return
+		}
+
+		conn.Privmsg(channel, user+" has shat out "+string(gcount)+" gifs")
+	}
+
 }
 
 func TopFive(conn *irc.Connection, args []string, channel string) {
