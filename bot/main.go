@@ -53,7 +53,7 @@ func main() {
 			case "top":
 				TopFive(conn, args, channel)
 			case "score":
-				Score(conn, args, channel, e.User)
+				Score(conn, args, channel, e.Nick)
 			default:
 				return
 			}
@@ -103,7 +103,7 @@ func Score(conn *irc.Connection, args []string, channel string, user string) {
 		u = user
 	}
 
-	row, _ := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(u)).Count().RunRow(session)
+	row, _ := rethink.Db("gifs").Table("entries").Filter(rethink.Row.Field("Sender").Eq(u)).Map(rethink.Row.Field("Url")).Distinct().Count().RunRow(session)
 
 	if !row.IsNil() {
 		var gcount int
