@@ -19,7 +19,7 @@ func main() {
 	message_chan := make(chan helpers.Message)
 	url_chan := make(chan helpers.Message)
 
-	chans := []string{"#secretyospos", "#cobol"}
+	chans := []string{"#secretyospos"}
 	nsfw := []string{"nsfw", "nms", "nws", "nsfl"}
 	conn := irc.IRC("ilovegifs", "ilovegifs")
 
@@ -34,6 +34,23 @@ func main() {
 	conn.AddCallback("001", func(e *irc.Event) {
 		for _, v := range chans {
 			conn.Join(v)
+		}
+	})
+
+	conn.AddCallback("PRIVMSG", func(e *irc.Event) {
+		message := strings.Split(e.Message(), " ")
+		channel := strings.Split(e.Raw, " ")[2]
+
+		if strings.Contains(message[0], "@") {
+			cmd := message[0][1:len(message[0])]
+			args := message[1:]
+
+			switch cmd {
+			case "top":
+				TopFive(conn, args, channel)
+			default:
+				return
+			}
 		}
 	})
 
@@ -55,6 +72,26 @@ func main() {
 	})
 
 	conn.Loop()
+}
+
+func TopFive(conn *irc.Connection, args []string, channel string) {
+	top := helpers.GifCount(session)
+	var top5 []helpers.User
+
+	if len(top) >= 9 {
+		top5 = top[0:9]
+	} else {
+		top5 = top[0:len(top)]
+	}
+
+	var entries []string
+	for i, user := range top5 {
+		entries = append(entries, fmt.Sprintf("#%d %s (%d gifs) ", i+1, user.Group, user.Reduction))
+	}
+
+	response := "Top 5 Gif Posters: " + strings.Join(entries, "|")
+
+	conn.Privmsg(channel, response)
 }
 
 func parseMessages(message_chan chan helpers.Message, url_chan chan helpers.Message) {
