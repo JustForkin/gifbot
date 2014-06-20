@@ -79,7 +79,7 @@ func TopFive(conn *irc.Connection, args []string, channel string) {
 	var top5 []helpers.User
 
 	if len(top) >= 5 {
-		top5 = top[0:4]
+		top5 = top[0:5]
 	} else {
 		top5 = top[0:len(top)]
 	}
