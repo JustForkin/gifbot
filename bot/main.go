@@ -19,7 +19,7 @@ func main() {
 	message_chan := make(chan helpers.Message)
 	url_chan := make(chan helpers.Message)
 
-	chans := []string{"#secretyospos"}
+	chans := []string{"#secretyospos", "#cobol"}
 	nsfw := []string{"nsfw", "nms", "nws", "nsfl"}
 	conn := irc.IRC("ilovegifs", "ilovegifs")
 
