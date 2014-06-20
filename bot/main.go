@@ -113,7 +113,8 @@ func Score(conn *irc.Connection, args []string, channel string, user string) {
 			return
 		}
 
-		conn.Privmsg(channel, user+" has shat out "+string(gcount)+" gifs")
+		msg := fmt.Sprintf("%s has shat out %d gifs", user, gcount)
+		conn.Privmsg(channel, msg)
 	}
 
 }
