@@ -22,8 +22,8 @@ type User struct {
 	Reduction int    `json:"count"`
 }
 
-func GifCount(session *rethink.Session) []*User {
-	users := []*User{}
+func GifCount(session *rethink.Session) []User {
+	users := []User{}
 
 	table := rethink.Db("gifs").Table("entries")
 	userQuery := table.Group("Sender").Count()
@@ -37,7 +37,7 @@ func GifCount(session *rethink.Session) []*User {
 			fmt.Println(err)
 		}
 
-		users = append(users, &user)
+		users = append(users, user)
 	}
 
 	sortutil.DescByField(users, "Reduction")
