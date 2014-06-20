@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	rethink "github.com/dancannon/gorethink"
+	"github.com/pmylund/sortutil"
 	"log"
 	"time"
 )
@@ -38,6 +39,8 @@ func GifCount(session *rethink.Session) []*User {
 
 		users = append(users, &user)
 	}
+
+	sortutil.DescByField(users, "Reduction")
 
 	return users
 }
