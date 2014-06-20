@@ -41,6 +41,10 @@ func main() {
 		message := strings.Split(e.Message(), " ")
 		channel := strings.Split(e.Raw, " ")[2]
 
+		if !IsValidChannel(channel, chans) {
+			return
+		}
+
 		if strings.Contains(message[0], "@") {
 			cmd := message[0][1:len(message[0])]
 			args := message[1:]
@@ -60,6 +64,10 @@ func main() {
 		message.Content = e.Message()
 		message.Channel = strings.Split(e.Raw, " ")[2]
 
+		if !IsValidChannel(message.Channel, chans) {
+			return
+		}
+
 		for _, w := range nsfw {
 			if strings.Contains(strings.ToLower(e.Message()), w) {
 				message.Nws = true
@@ -72,6 +80,16 @@ func main() {
 	})
 
 	conn.Loop()
+}
+
+func IsValidChannel(channel string, channels []string) bool {
+	for _, c := range channels {
+		if c == channel {
+			return true
+		}
+	}
+
+	return false
 }
 
 func TopFive(conn *irc.Connection, args []string, channel string) {
