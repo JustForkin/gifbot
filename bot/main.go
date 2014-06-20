@@ -78,15 +78,15 @@ func TopFive(conn *irc.Connection, args []string, channel string) {
 	top := helpers.GifCount(session)
 	var top5 []helpers.User
 
-	if len(top) >= 9 {
-		top5 = top[0:9]
+	if len(top) >= 5 {
+		top5 = top[0:4]
 	} else {
 		top5 = top[0:len(top)]
 	}
 
 	var entries []string
 	for i, user := range top5 {
-		entries = append(entries, fmt.Sprintf("#%d %s (%d gifs) ", i+1, user.Group, user.Reduction))
+		entries = append(entries, fmt.Sprintf(" #%d %s (%d gifs) ", i+1, user.Group, user.Reduction))
 	}
 
 	response := "Top 5 Gif Posters: " + strings.Join(entries, "|")
