@@ -26,7 +26,7 @@ func GifCount(session *rethink.Session) []User {
 	users := []User{}
 
 	table := rethink.Db("gifs").Table("entries")
-	userQuery := table.Group("Sender").Count()
+	userQuery := table.Group("Sender").Map(rethink.Row.Field("Url")).Distinct().Count()
 
 	userRows, _ := userQuery.Run(session)
 	for userRows.Next() {
